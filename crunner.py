@@ -1,6 +1,7 @@
 import threading 
 from cStringIO import StringIO
 from unittest import TextTestRunner
+from unittest import TextTestResult
 from unittest import registerResult
 import time
 
@@ -18,10 +19,10 @@ class _WritelnDecorator:
     if arg: self.write(arg) 
     self.write('\n') 
 
-class ConcurrentTestResult(TextTestResult):
+class ConcurrentTextTestResult(TextTestResult):
 
   def __init__(self, *args, **kwargs):
-    super(ConcurrentTestResult, self).__init__(*args, **kwargs)
+    super(ConcurrentTextTestResult, self).__init__(*args, **kwargs)
     self.sstreams = []
 
   def _wrap_method(self, f, test, *args, **kwargs):
@@ -30,7 +31,7 @@ class ConcurrentTestResult(TextTestResult):
       test.result_stream = _WritelnDecorator(StringIO())
       self.sstreams.append(test.result_stream)
     self.stream = test.result_stream
-    res = getattr(super(ConcurrentTestResult, self), f)(test, *args,
+    res = getattr(super(ConcurrentTextTestResult, self), f)(test, *args,
         **kwargs)
     self.stream = stream
     return res
@@ -72,10 +73,10 @@ class ConcurrentTestResult(TextTestResult):
       stream.writeln(self.separator2)
       stream.writeln("%s" % err)
 
-class ConcurrentTestRunner(TextTestRunner):
-  resultclass = ConcurrentTestResult
+class ConcurrentTextTestRunner(TextTestRunner):
+  resultclass = ConcurrentTextTestResult
 
-  def run(self, test, threads=2):
+  def run(self, test, *args, **kwargs):
     "Run the given test case or test suite."
     result = self._makeResult()
     registerResult(result)
@@ -85,33 +86,8 @@ class ConcurrentTestRunner(TextTestRunner):
     startTestRun = getattr(result, 'startTestRun', None)
     if startTestRun is not None:
       startTestRun()
-    locks = [threading.Lock() for i in range(3)]
-    assert len(locks) == 3, "Incorrect number of locks"
-    pool = threading.BoundedSemaphore(threads)
-    rlocks = [threading.RLock() for _ in test]
-    suite = [(test,lock) for (test,lock) in zip(test,rlocks)]
-    def _run(lock, test):
-      try:
-        lock.acquire()
-        test.locks = locks
-        test(result)
-      except:
-        raise
-      finally:
-        pool.release()
-        lock.release()
     try:
-      threads = []
-      for (test,lock) in suite:
-        try:
-          pool.acquire()
-          thread = threading.Thread(target=_run, args=[lock, test])
-          threads.append(thread)
-          thread.start()
-        except:
-          raise
-      for thread in threads:
-        thread.join()
+      test(result, *args, **kwargs)
     finally:
       stopTestRun = getattr(result, 'stopTestRun', None)
       if stopTestRun is not None:
