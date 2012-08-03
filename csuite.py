@@ -4,7 +4,7 @@ import threading
 class ConcurrentTestSuite(TestSuite):
 
   def __init__(self, threads=2, *args, **kwargs):
-    self.threads = 2
+    self.threads = threads
     super(ConcurrentTestSuite, self).__init__(*args, **kwargs)
 
   def run(self, result, *args, **kwargs):
