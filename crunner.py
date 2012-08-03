@@ -1,8 +1,15 @@
 import threading 
 from cStringIO import StringIO
 from unittest import TextTestRunner
-from unittest import TextTestResult
-from unittest import registerResult
+try:
+  from unittest import TextTestResult
+except ImportError:
+  from unittest import _TextTestResult as TextTestResult
+try:
+  from unittest import registerResult
+except ImportError:
+  def registerResult(*args, **kwargs):
+    pass
 import time
 
 # For some reason I can't import this, so I've inlined it

@@ -15,6 +15,9 @@ The extra arguement passing is fragile, unfortunately, as the base
 classes in unittest don't use *args and **kwargs in some of the run
 methods.
 
+cunittest works with 2.6 and 2.7, as far as I know. There are probably
+bugs or missing features. Feel free to make issues.
+
 Usage
 ===
 See the example.py for usage. I've tried to ensure it's use and
