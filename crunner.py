@@ -87,8 +87,12 @@ class ConcurrentTextTestRunner(TextTestRunner):
     "Run the given test case or test suite."
     result = self._makeResult()
     registerResult(result)
-    result.failfast = self.failfast
-    result.buffer = self.buffer
+# These don't exist in 2.6
+    try:
+      result.failfast = self.failfast
+      result.buffer = self.buffer
+    except:
+      pass
     startTime = time.time()
     startTestRun = getattr(result, 'startTestRun', None)
     if startTestRun is not None:
