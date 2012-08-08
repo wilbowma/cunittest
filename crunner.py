@@ -83,6 +83,10 @@ class ConcurrentTextTestResult(TextTestResult):
 class ConcurrentTextTestRunner(TextTestRunner):
   resultclass = ConcurrentTextTestResult
 
+  def _makeResult(self):
+    return ConcurrentTextTestResult(self.stream, self.descriptions,
+        self.verbosity)
+
   def run(self, test, *args, **kwargs):
     "Run the given test case or test suite."
     result = self._makeResult()
