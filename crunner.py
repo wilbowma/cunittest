@@ -1,4 +1,5 @@
 import threading 
+import sys
 from cStringIO import StringIO
 from unittest import TextTestRunner
 try:
@@ -50,6 +51,8 @@ class ConcurrentTextTestResult(TextTestResult):
     return self._wrap_method("addSuccess", test, *args, **kwargs)
 
   def addError(self, test, *args, **kwargs):
+    sys.excepthook(*sys.exc_info())
+
     return self._wrap_method("addError", test, *args, **kwargs)
 
   def addFailure(self, test, *args, **kwargs):
