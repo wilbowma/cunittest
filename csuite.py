@@ -9,25 +9,22 @@ class ConcurrentTestSuite(TestSuite):
 
   def run(self, result, *args, **kwargs):
     pool = threading.BoundedSemaphore(self.threads)
-    rlocks = [threading.RLock() for _ in self]
-    suite = [(test,lock) for (test,lock) in zip(self,rlocks)]
-    def _run(lock, test):
-      try:
-#        lock.acquire()
-        test(result, *args, **kwargs)
-      except:
-        raise
-      finally:
-        pool.release()
-#        lock.release()
     threads = []
-    for (test,lock) in suite:
+    for test in self:
+      def close():
+        def _run():
+          try:
+            test(result, *args, **kwargs)
+          finally:
+            pool.release()
+        return _run
       try:
         pool.acquire()
-        thread = threading.Thread(target=_run, args=[lock, test])
+        thread = threading.Thread(target=close())
         threads.append(thread)
         thread.start()
       except:
+        pool.release()
         raise
     for thread in threads:
       thread.join()
